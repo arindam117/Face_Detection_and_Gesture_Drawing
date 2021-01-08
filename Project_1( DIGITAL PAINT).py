@@ -5,7 +5,7 @@ frameWidth = 360
 frameHeight = 480
 
 cap = cv2.VideoCapture(0)
-
+facecascade = cv2.CascadeClassifier('frontalface_default.xml')
 # 3 is for width and frameWidth = 640, we can directly put 360 as well in place of frameWidth in cap.set()
 cap.set(3, frameWidth)
 # 4 is for height and we already have made the frameHeight variable = 480
@@ -56,10 +56,23 @@ def drawOnCanvas(myPoints,myColorValues):
     for point in myPoints:
         cv2.circle(imgResult, (point[0], point[1]), 10, myColorValues[point[2]], cv2.FILLED)
 
-
 while True:
+
     success, img = cap.read()
     imgResult = img.copy()
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # THis will change the color of the webcam input
+
+    # 1.1 is the scale factor and 4 is the minimum neighbour
+    # Here we will put the grayed web cam feed
+    faces = facecascade.detectMultiScale(gray, 1.1, 4)
+    for x, y, w, h in faces:
+
+            cv2.rectangle(img, (x, y), (x + w, y + h), (0,255, 0), 2)
+            objectType = "Face Detected"
+            # This will put text in the video feed if there is any face
+            # x+(w//2)-50 , y+(h//2)-50 .. these are to shift and adjust the text in the screen
+            cv2.putText(img,objectType,(x+(w//2)-50,y+(h//2)-110),cv2.FONT_HERSHEY_COMPLEX,0.5,(255,255,255),2)
+
     newPoints = findColor(img, myColors,myColorValues)
     if len(newPoints)!=0:
         for newP in newPoints:
@@ -69,6 +82,7 @@ while True:
 
 
     cv2.imshow("Result", imgResult)
+    cv2.imshow('video_output', img)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
